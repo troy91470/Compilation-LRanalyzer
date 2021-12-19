@@ -1,17 +1,22 @@
 #include "automatePile.h"
-
+/*
+    Fonction qui ajoute deux caractere sur le dessus de la pile de l'automate.
+    Le dernier caractere lu et le prochain etat de l'automate.
+    La taille de la pile a une taille égale au nombre de caractere + 1.
+    Donc reallocation couteuse de la memoire a chaque utilisation de la fonction.
+*/
 void ajoutPile(automatePile* a,char c,int etat)
 {
-    //A utiliser lors d'un decalage
-    //Ajoute le caractere lu et le prochain etat à la pile.
+    //Transformation de l'etat d'entier vers un char *
     int longeur = (int)((ceil(log10(etat))+1)*sizeof(char));
     char nombre[longeur];
     sprintf(nombre, "%d", etat);
-    char * str = (char *)malloc((longeur+1) * sizeof(char));
+    char * str = (char *)malloc((longeur+2) * sizeof(char));
     str[0] = c;
     str[1] = '\0';
     strcat(str,nombre);
-    //TODO Realloc uniquement si besoin, regarder si taille de la pile plus nouveau str plus grand que max
+    //TODO Realloc uniquement si besoin, regarder si taille de la pile plus nouveau str plus grand que max. Voir pour une variable taillePileMax
+    //Reallocation de la memoire pour ajouter de la place pour le caractere lu et le prochain etat.
     a->pile = (char *) realloc(a->pile,(a->taillePile+longeur+1) * sizeof(char));
     if (a->pile == NULL)
     {
@@ -22,7 +27,11 @@ void ajoutPile(automatePile* a,char c,int etat)
     free(str);
     a->taillePile = a->taillePile+longeur;
 }
-
+/*
+    Cherche sur la pile la production de la regle. Ignore les nombres composants les etats.
+    On lit la pile de la fin vers le début car c'est une situation FILO.
+    Pas de situation d'echec possible si on respecte la table et la grammaire.
+*/
 void reduirePile(automatePile* a,table table,rule regle)
 {
     //A utiliser lors d'une reduction
@@ -33,7 +42,6 @@ void reduirePile(automatePile* a,table table,rule regle)
     //TODO Vérifier des grammaires vides
     while (regle.rhs[tailleTexte] != 0)
     {
-       // printf("%c\n",regle.rhs[tailleTexte]);
         tailleTexte++;
     }
     int rechercheEnCours = 1;
@@ -50,7 +58,7 @@ void reduirePile(automatePile* a,table table,rule regle)
         }
         else
         {
-            //VERIFIE SI CHAR NON TERMINAL
+            //VERIFIE SI CHAR NON TERMINAL PAS UTILE ?
             // if ( (regle.rhs[teteDeRecherche] & (1 << 8)) != 0)
             // {
             //    teteDeRecherche--;
@@ -65,37 +73,30 @@ void reduirePile(automatePile* a,table table,rule regle)
     if(tailleTexte != 0)
     {
         a->taillePile++;
-        a->pile[a->taillePile -1] = regle.lhs;
-       //printf("PILE : %c ANCIEN ETAT : %d CODE AXIOME : %d %d Prochain etat %d\n",a->pile[a->taillePile - 2],(int)(a->pile[a->taillePile - 2] - '0'),regle.lhs,256 - regle.lhs,table.trans[(int)(a->pile[a->taillePile - 2] - '0') * 256  + 256 - regle.lhs]);
+        a->pile[a->taillePile -1] = '\0';
+        //TODO ECHEC SI l'etat est un nombre et pas un chiffre (faire un while tant qu'il y a des chiffres lire puis convertir pour obtenir l'etat)
+        //ATTENTION ON LIT A L'ENVERS DONC SI l'etat est 345 ON VA LIRE 543 DONC IL FAUT AUSSI INVERSER TOUT LES CHIFFRES AVANT DE CONVERTIR
         a->etat = table.trans[(int)(a->pile[a->taillePile - 2] - '0') * 256  + 256 - regle.lhs];
-        printf("ETAT : %d\n",a->etat);
-        //TODO PEUT ETRE FAIRE UNE FONCTION UTILITAIRE DE CONVERSION DE CHIFFRE EN STRING
-        int longeur = (int)((ceil(log10(a->etat)+1)*sizeof(char)));
-        char nombre[longeur];
-        sprintf(nombre, "%d", a->etat);
-        a->pile[a->taillePile] = '\0';
-        strcat(a->pile,nombre);
-        //TODO ATTENTION NOMBRE PEUT DEPASSER TAILLE DU TEXTE
-        a->pile[a->taillePile + longeur+1] = '\0';
-        a->taillePile += 2 + longeur;
-       // a->etat = etat;
-       // ajoutPile(a,regle.lhs,a->etat);
+        ajoutPile(a,regle.lhs,a->etat);
     }
     else
     {
+        //DE MEME ICI ECHEC SI l'ETAT EST UN NOMBRE
         a->etat = table.trans[(int)(a->pile[a->taillePile - 2] - '0') * 256  + 256 - regle.lhs];
         ajoutPile(a,regle.lhs,a->etat);
     }
 
 }
+/*
+    Execute l'automate a pile grace a la grammaire et la table sur le texte d'entree.
+*/
 void analyseflot(const char* texte,grammar gram,table table)
 {
     automatePile a = initialiseAutomate(texte);
-
+    printf("Flot :%s \n",a.flot + a.teteLecture);
     while (1)
     {
         signed char c = a.flot[a.teteLecture];
-        //printf("TETE : %d CHAR : %c",a.teteLecture,a.flot[a.teteLecture]);
         signed char operation = table.trans[a.etat * 256 + c];
         if (operation == -127)
         {
@@ -114,16 +115,25 @@ void analyseflot(const char* texte,grammar gram,table table)
             printf("LU %c Etat %d decalage vers %d\n",c,a.etat,operation);
             ajoutPile(&a,c,a.etat);
             printf("Pile : %s\n",a.pile);
+            printf("Flot :%s \n",a.flot + a.teteLecture);
+
         }
         else
         {
             printf("LU %c Etat %d reduction par %d\n",c,a.etat,-operation -1);
             reduirePile(&a,table,gram.rules[(-operation)-1]);
             printf("Pile : %s\n",a.pile);
+            printf("Flot :%s \n",a.flot + a.teteLecture);
+
         }
     }
+    free(a.flot);
+    free(a.pile);
 
 }
+/*
+    Initialise l'automate a pile avec les valeur par defaut.
+*/
 automatePile initialiseAutomate(const char* texte)
 {
     automatePile automate;
