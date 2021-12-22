@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "read_file.h"
+#include "arbreAnalyse.h"
 
 
 typedef struct automatePile

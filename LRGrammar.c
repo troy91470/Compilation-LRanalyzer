@@ -72,3 +72,4 @@ void print_table(table t, grammar G){
     }
   }
 }
+

@@ -27,6 +27,8 @@ void ajoutPile(automatePile* a,char c,int etat)
     free(str);
     a->taillePile = a->taillePile+longeur;
 }
+
+
 /*
     Cherche sur la pile la production de la regle. Ignore les nombres composants les etats.
     On lit la pile de la fin vers le début car c'est une situation FILO.
@@ -45,7 +47,7 @@ void reduirePile(automatePile* a,table table,rule regle)
         tailleTexte++;
     }
     int rechercheEnCours = 1;
-    unsigned int teteDeRecherche = tailleTexte;
+    unsigned int teteDeRecherche = tailleTexte - 1;
     if (tailleTexte == 0)
     {
         rechercheEnCours = 0;
@@ -87,50 +89,68 @@ void reduirePile(automatePile* a,table table,rule regle)
     }
 
 }
+
+
 /*
     Execute l'automate a pile grace a la grammaire et la table sur le texte d'entree.
 */
 void analyseflot(const char* texte,grammar gram,table table)
 {
-    automatePile a = initialiseAutomate(texte);
-    printf("Flot :%s \n",a.flot + a.teteLecture);
-    while (1)
-    {
-        signed char c = a.flot[a.teteLecture];
-        signed char operation = table.trans[a.etat * 256 + c];
-        if (operation == -127)
-        {
-            printf("REUSSITE\n");
-            exit(0);
-        }
-        else if(operation == 0)
-        {
-            printf("ECHEC\n");
-            exit(0);
-        }
-        else if (operation > 0)
-        {
-            a.etat = operation;
-            a.teteLecture++;
-            printf("LU %c Etat %d decalage vers %d\n",c,a.etat,operation);
-            ajoutPile(&a,c,a.etat);
-            printf("Pile : %s\n",a.pile);
-            printf("Flot :%s \n",a.flot + a.teteLecture);
+	noeud *noeud = creeNoeud();
 
-        }
-        else
-        {
-            printf("LU %c Etat %d reduction par %d\n",c,a.etat,-operation -1);
-            reduirePile(&a,table,gram.rules[(-operation)-1]);
-            printf("Pile : %s\n",a.pile);
-            printf("Flot :%s \n",a.flot + a.teteLecture);
+	printf("           Flot  |  Pile\n\n    -------------------------------------\n");
 
-        }
-    }
-    free(a.flot);
-    free(a.pile);
+    	automatePile a = initialiseAutomate(texte);
+    	printf("%16s | \n",a.flot + a.teteLecture);
 
+
+    	while (1)
+    	{
+		signed char c = a.flot[a.teteLecture];
+		signed char operation = table.trans[a.etat * 256 + c];
+		int nbChiffresOperation = 1;
+
+        	if (operation == -127)
+        	{
+            		printf("accept\n");
+            		exit(0);
+        	}	
+        	else if(operation == 0)
+        	{
+            		printf("refuse\n");
+            		exit(0);
+        	}
+        	else if (operation > 0)
+        	{
+		    	a.etat = operation;
+		    	a.teteLecture++;
+		    	ajoutPile(&a,c,a.etat);
+			if(operation >= 10)
+			{
+				nbChiffresOperation = 2;
+			}
+		    	printf("d%d %*s | %s\n", operation, 14-nbChiffresOperation, a.flot + a.teteLecture, a.pile);
+        	}
+        	else
+        	{
+		    	reduirePile(&a,table,gram.rules[(-operation)-1]);
+			if(-operation -1 >= 10)
+			{
+				nbChiffresOperation = 2;
+			}
+			printf("r%d %*s | %s\n", -operation -1, 14-nbChiffresOperation, a.flot + a.teteLecture, a.pile);
+
+			ajouteRuleArbreAnalyse(noeud, gram.rules[(-operation)-1]);
+			noeud = noeud->racine;
+        	}
+	}
+	
+	free(noeud); ////////////////// IL FAUDRA SANS DOUTE BOUGER CE FREE, EN FONCTION D'A PARTIR D'OU ON AFFICHE L'ARBRE
+    	free(a.flot);
+    	free(a.pile);
 }
+
+
 /*
     Initialise l'automate a pile avec les valeur par defaut.
 */
@@ -138,7 +158,6 @@ automatePile initialiseAutomate(const char* texte)
 {
     automatePile automate;
     automate.tailleflot = strlen(texte);
-    printf("Taille texte : %d\n",automate.tailleflot);
     automate.flot = malloc(sizeof(char) * automate.tailleflot + 1);
     strcpy(automate.flot,texte);
     automate.pile = malloc(sizeof(char) * 2);
