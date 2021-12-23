@@ -80,13 +80,19 @@ void ajouteNoeudArbreAnalyse(arbre* arbre,rule* regle)
 	}
 }
 
+
 void litArbreAnalyse(noeud* noeud)
 {
 	unsigned int tailleTexte = 0;
 	size_t nonTerminalSuivant = 0;
+	char aEcrire[256];
+
 	if (noeud != NULL)
 	{
 		printf("%c(",noeud->regleGeneratrice->lhs);
+		sprintf(aEcrire,"%c(",noeud->regleGeneratrice->lhs);
+		ecrit_fichier_latex(aEcrire);
+
 		while (noeud->regleGeneratrice->rhs[tailleTexte] != 0)
 		{
 			tailleTexte++;
@@ -98,6 +104,8 @@ void litArbreAnalyse(noeud* noeud)
 				for (size_t i = 0; i < tailleTexte; i++)
 				{
 					printf("%c",noeud->regleGeneratrice->rhs[i]);
+					sprintf(aEcrire,"%c",noeud->regleGeneratrice->rhs[i]);
+					ecrit_fichier_latex(aEcrire);
 				}
 			}
 			else
@@ -112,11 +120,14 @@ void litArbreAnalyse(noeud* noeud)
 					else
 					{
 						printf("%c",noeud->regleGeneratrice->rhs[i]);
+						sprintf(aEcrire,"%c",noeud->regleGeneratrice->rhs[i]);
+						ecrit_fichier_latex(aEcrire);
 					}
 				}
 			}
 		}
 		printf(")");
+		ecrit_fichier_latex(")");
 	}
 }
 

@@ -3,6 +3,7 @@
 #include <math.h>
 #include "read_file.h"
 #include "arbreAnalyse.h"
+#include "ecritureLatex.h"
 
 
 typedef struct automatePile

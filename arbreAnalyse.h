@@ -6,6 +6,7 @@
 // Alors que les E les plus récent sont surement ceux que l'on interagir.
 
 #include "LRGrammar.h"
+#include "ecritureLatex.h"
 
 typedef struct noeud{
 	struct noeud* racine;
