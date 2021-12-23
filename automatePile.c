@@ -96,58 +96,64 @@ void reduirePile(automatePile* a,table table,rule regle)
 */
 void analyseflot(const char* texte,grammar gram,table table)
 {
-	noeud *noeud = creeNoeud();
+    printf("           Flot  |  Pile\n\n    -------------------------------------\n");
+    automatePile a = initialiseAutomate(texte);
+    printf("%16s | \n",a.flot + a.teteLecture);
 
-	printf("           Flot  |  Pile\n\n    -------------------------------------\n");
+    arbre* arbre = creeArbre();
+    while (1)
+    {
+        signed char c = a.flot[a.teteLecture];
+        signed char operation = table.trans[a.etat * 256 + c];
+        int nbChiffresOperation = 1;
 
-    	automatePile a = initialiseAutomate(texte);
-    	printf("%16s | \n",a.flot + a.teteLecture);
+        if (operation == -127) // ACCEPTER
+        {
+                printf("accept \n");
+                break;
+        }
+        else if(operation == 0) // REFUSER
+        {
+                printf("refuse\n");
+                break;
+        }
+        else if (operation > 0) //DECALAGE
+        {
+            a.etat = operation;
+            a.teteLecture++;
+            ajoutPile(&a,c,a.etat);
+            if(operation >= 10)
+            {
+                nbChiffresOperation = 2;
+            }
+            printf("d%d %*s | %s\n", operation, 14-nbChiffresOperation, a.flot + a.teteLecture, a.pile);
+        }
+        else //REDUCTION
+        {
+            reduirePile(&a,table,gram.rules[(-operation)-1]);
+            ajouteNoeudArbreAnalyse(arbre,&(gram.rules[(-operation)-1]));
+           // printf("arbre : %d -------\n",arbre->taille);
+            if(-operation -1 >= 10)
+            {
+                nbChiffresOperation = 2;
+            }
+            printf("r%d %*s | %s\n", -operation -1, 14-nbChiffresOperation, a.flot + a.teteLecture, a.pile);
 
-
-    	while (1)
-    	{
-		signed char c = a.flot[a.teteLecture];
-		signed char operation = table.trans[a.etat * 256 + c];
-		int nbChiffresOperation = 1;
-
-        	if (operation == -127)
-        	{
-            		printf("accept\n");
-            		exit(0);
-        	}	
-        	else if(operation == 0)
-        	{
-            		printf("refuse\n");
-            		exit(0);
-        	}
-        	else if (operation > 0)
-        	{
-		    	a.etat = operation;
-		    	a.teteLecture++;
-		    	ajoutPile(&a,c,a.etat);
-			if(operation >= 10)
-			{
-				nbChiffresOperation = 2;
-			}
-		    	printf("d%d %*s | %s\n", operation, 14-nbChiffresOperation, a.flot + a.teteLecture, a.pile);
-        	}
-        	else
-        	{
-		    	reduirePile(&a,table,gram.rules[(-operation)-1]);
-			if(-operation -1 >= 10)
-			{
-				nbChiffresOperation = 2;
-			}
-			printf("r%d %*s | %s\n", -operation -1, 14-nbChiffresOperation, a.flot + a.teteLecture, a.pile);
-
-			ajouteRuleArbreAnalyse(noeud, gram.rules[(-operation)-1]);
-			noeud = noeud->racine;
-        	}
-	}
-	
-	free(noeud); ////////////////// IL FAUDRA SANS DOUTE BOUGER CE FREE, EN FONCTION D'A PARTIR D'OU ON AFFICHE L'ARBRE
-    	free(a.flot);
-    	free(a.pile);
+        // ajouteRuleArbreAnalyse(noeud, gram.rules[(-operation)-1]);
+        //noeud = noeud->racine;
+        }
+    }
+    //litArbreAnalyse(arbre->pile[0]);
+    for (size_t i = 0; i < arbre->taille; i++)
+    {
+        litArbreAnalyse(arbre->pile[i]);
+        printf("\n");
+    }
+    LibereMemoireArbre(arbre);
+    free(arbre->pile);
+    free(arbre);
+    free(a.flot);
+    free(a.pile);
 }
 
 

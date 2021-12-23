@@ -1,50 +1,168 @@
 #include "arbreAnalyse.h"
 
 
-noeud* creeNoeud()
+noeud* creeNoeud(rule* regle)
 {
-	noeud *noeud = malloc(sizeof(*noeud));
-
-	if(noeud == NULL)
+	unsigned int tailleTexte = 0;
+	noeud *Nouveaunoeud = malloc(sizeof(noeud));
+	if(Nouveaunoeud == NULL)
 	{
 		fprintf(stderr, "Erreur allocation memoire.\n");
 		exit(EXIT_FAILURE);
-	} 
+	}
 
-	noeud->racine = NULL;
-	noeud->regleGeneratrice = NULL;
-	noeud->fils = NULL;
+	Nouveaunoeud->racine = NULL;
+	Nouveaunoeud->nombreNonTerminaux = 0;
+	Nouveaunoeud->regleGeneratrice = regle;
+    while (Nouveaunoeud->regleGeneratrice->rhs[tailleTexte] != 0)
+    {
+        tailleTexte++;
+    }
+	if (tailleTexte != 0)
+	{
+		for(int i = tailleTexte -1; i > -1; i--)
+		{
+			//printf("TAILLE : %d \n",tailleTexte);
+			//printf("CA MARCHE ? %c %d\n",Nouveaunoeud->regleGeneratrice->rhs[i-1],Nouveaunoeud->regleGeneratrice->rhs[i-1]);
+			if ( Nouveaunoeud->regleGeneratrice->rhs[i] < 0)
+			{
+				//printf("CA MARCHE ! \n");
+				Nouveaunoeud->nombreNonTerminaux ++;
+			}
+		}
+	}
 
-	return noeud;
+	Nouveaunoeud->fils = malloc(sizeof(noeud*) * Nouveaunoeud->nombreNonTerminaux);
+
+	return Nouveaunoeud;
 }
 
+arbre* creeArbre()
+{
+	arbre* arbre = malloc(sizeof(struct arbre));
+	arbre->taille = 0;
+	arbre->tailleMax = 1;
+	arbre->pile = malloc(sizeof(noeud*));
+	return arbre;
+}
+
+void ajouteNoeudArbreAnalyse(arbre* arbre,rule* regle)
+{
+	noeud* nouveauNoeud = creeNoeud(regle);
+	if (nouveauNoeud->nombreNonTerminaux == 0) //Ajout sur la pile
+	{
+		if (arbre->taille + 1  > arbre->tailleMax) // Verification de la taille max de la pile
+		{
+			arbre->pile = realloc(arbre->pile,sizeof(noeud*) * arbre->taille + 1);
+			if(arbre->pile == NULL)
+			{
+				fprintf(stderr, "Erreur reallocation memoire Arbre.\n");
+				exit(EXIT_FAILURE);
+			}
+			arbre->tailleMax = arbre->taille + 1;
+		}
+		arbre->taille ++;
+		arbre->pile[arbre->taille -1] = nouveauNoeud;
+	}
+	else //Combinaison de noeud deja sur la pile
+	{
+		for (size_t i = 1; i <= nouveauNoeud->nombreNonTerminaux; i++)
+		{
+			//printf("POSITION %d\n",arbre->taille - 1 - i);
+			nouveauNoeud->fils[i -1] = arbre->pile[arbre->taille - i];
+			arbre->pile[arbre->taille - i] = NULL;
+		}
+		arbre->taille -= nouveauNoeud->nombreNonTerminaux;
+		arbre->taille++;
+		//printf("TAILLE : %d\n",arbre->taille - 1);
+		arbre->pile[arbre->taille - 1] = nouveauNoeud;
+
+	}
+}
 
 void litArbreAnalyse(noeud* noeud)
 {
-
+	unsigned int tailleTexte = 0;
+	size_t nonTerminalSuivant = 0;
+	if (noeud != NULL)
+	{
+		printf("%c(",noeud->regleGeneratrice->lhs);
+		while (noeud->regleGeneratrice->rhs[tailleTexte] != 0)
+		{
+			tailleTexte++;
+		}
+		if (tailleTexte != 0)
+		{
+			if (noeud->nombreNonTerminaux == 0)
+			{
+				for (size_t i = 0; i < tailleTexte; i++)
+				{
+					printf("%c",noeud->regleGeneratrice->rhs[i]);
+				}
+			}
+			else
+			{
+				for (size_t i = 0; i < tailleTexte; i++)
+				{
+					if (noeud->regleGeneratrice->rhs[i] < 0)
+					{
+						litArbreAnalyse(noeud->fils[nonTerminalSuivant]);
+						nonTerminalSuivant ++;
+					}
+					else
+					{
+						printf("%c",noeud->regleGeneratrice->rhs[i]);
+					}
+				}
+			}
+		}
+		printf(")");
+	}
 }
 
+void LibereMemoireArbre(arbre * a)
+{
+	for (size_t i = 0; i < a->taille; i++)
+	{
+		LibereMemoireNoeud(a->pile[i]);
+	}
+}
 
-
+void LibereMemoireNoeud(noeud* n)
+{
+	if (n != NULL)
+	{
+		for (size_t i = 0; i < n->nombreNonTerminaux; i++)
+		{
+			LibereMemoireNoeud(n->fils[i]);
+		}
+		free(n->fils);
+		free(n->racine);
+		free(n);
+	}
+}
+/*
 void ajouteRuleArbreAnalyse(noeud* noeud, rule rule)
 {
 	int j=0;
 
 	while(rule.rhs[j]!='\0'){
 		if(rule.rhs[j]<=0){
-			ajouteNoeudArbreAnalyse(noeud, rule.lhs, rule.rhs[j]);
+			ajouteNoeudArbreAnalyse(noeud, rule.lhs, rule);
       		}
       		j++;
-    	}	
+    	}
 }
+*/
 
-
-void ajouteNoeudArbreAnalyse(noeud* noeud, char racine, char regleGeneratrice)
+/*
+void ajouteNoeudArbreAnalyse(noeud** pile,char racine, rule regleGeneratrice)
 {
 	noeud* nouveauNoeud = creeNoeud();
 
 	nouveauNoeud->racine = racine;
 	nouveauNoeud->regleGeneratrice = regleGeneratrice;
-	nouveauNoeud->fils = noeud->racine ????????? //un bail du genre
+	//nouveauNoeud->fils = noeud->racine;// ????????? //un bail du genre
 }
+*/
 

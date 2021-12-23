@@ -7,16 +7,26 @@
 
 #include "LRGrammar.h"
 
-
 typedef struct noeud{
 	struct noeud* racine;
-	char regleGeneratrice;
-	struct noeud** fils; //il en faut plusieurs donc tableau ou ** ?
+	rule* regleGeneratrice;
+	struct noeud** fils;
+	unsigned int nombreNonTerminaux;
 } noeud;
 
+typedef struct arbre{
+	noeud** pile;
+	int tailleMax;
+	int taille;
+} arbre;
 
-noeud* creeNoeud();
+
+noeud* creeNoeud(rule*);
+arbre* creeArbre();
 void litArbreAnalyse(noeud* noeud);
-void ajouteRuleArbreAnalyse(noeud* noeud, rule rule);
-void ajouteNoeudArbreAnalyse(noeud* noeud, char racine, char regleGeneratrice);
+void ajouteNoeudArbreAnalyse(arbre* arbre,rule* regle);
+void LibereMemoireArbre(arbre *);
+void LibereMemoireNoeud(noeud* n);
+//void ajouteRuleArbreAnalyse(noeud* noeud, rule rule);
+//void ajouteNoeudArbreAnalyse(noeud** pile,char racine, rule regleGeneratrice);
 
