@@ -1,3 +1,5 @@
+/* Auteurs: Bjorn LIM CHOU SANG et Thomas ROY */
+
 //Arbre inversé
 //Garder en mémoire la liste des noeuds et leur niveu
 //Ne considérer uniquement les noeuds qui n'ont pas de de racine

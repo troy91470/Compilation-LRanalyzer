@@ -1,3 +1,5 @@
+/* Auteurs: Bjorn LIM CHOU SANG et Thomas ROY */
+
 #include "automatePile.h"
 
 int main(int argc, char const *argv[])

@@ -1,3 +1,5 @@
+/* Auteurs: Bjorn LIM CHOU SANG et Thomas ROY */
+
 #include "automatePile.h"
 /*
     Fonction qui ajoute deux caractere sur le dessus de la pile de l'automate.

@@ -1,3 +1,5 @@
+/* Auteurs: Bjorn LIM CHOU SANG et Thomas ROY */
+
 #include <stdio.h>
 
 void nettoie_fichier_latex();
