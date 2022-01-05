@@ -14,6 +14,7 @@ typedef struct automatePile
     char* flot;
     int tailleflot;
     int taillePile;
+    int taillePileMax;
     int teteLecture;
     int etat;
 }automatePile;

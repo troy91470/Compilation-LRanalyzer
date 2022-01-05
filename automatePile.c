@@ -17,13 +17,15 @@ void ajoutPile(automatePile* a,char c,int etat)
     str[0] = c;
     str[1] = '\0';
     strcat(str,nombre);
-    //TODO Realloc uniquement si besoin, regarder si taille de la pile plus nouveau str plus grand que max. Voir pour une variable taillePileMax
-    //Reallocation de la memoire pour ajouter de la place pour le caractere lu et le prochain etat.
-    a->pile = (char *) realloc(a->pile,(a->taillePile+longeur+1) * sizeof(char));
-    if (a->pile == NULL)
+    if (a->taillePile+longeur+1 > a->taillePileMax)
     {
-        fprintf(stderr,"ERROR : Echec reallocation\n");
-        exit(-2);
+        a->taillePileMax = a->taillePileMax+longeur+1;
+        a->pile = (char *) realloc(a->pile,(a->taillePileMax+longeur+1) * sizeof(char));
+        if (a->pile == NULL)
+        {
+            fprintf(stderr,"ERROR : Echec reallocation\n");
+            exit(-2);
+        }
     }
     strcat(a->pile,str);
     free(str);
@@ -43,7 +45,6 @@ void reduirePile(automatePile* a,table table,rule regle)
     //Puis supprime le texte. -> Ajouter texte à l'arbre d'analyse
     //Renvoie le prochain etat
     unsigned int tailleTexte = 0;
-    //TODO Vérifier des grammaires vides
     while (regle.rhs[tailleTexte] != 0)
     {
         tailleTexte++;
@@ -54,7 +55,7 @@ void reduirePile(automatePile* a,table table,rule regle)
     {
         rechercheEnCours = 0;
     }
-    while (rechercheEnCours)
+    while (rechercheEnCours && a->taillePile != -1)
     {
         if (teteDeRecherche == -1)
         {
@@ -62,11 +63,6 @@ void reduirePile(automatePile* a,table table,rule regle)
         }
         else
         {
-            //VERIFIE SI CHAR NON TERMINAL PAS UTILE ?
-            // if ( (regle.rhs[teteDeRecherche] & (1 << 8)) != 0)
-            // {
-            //    teteDeRecherche--;
-            // }
             if (a->pile[a->taillePile-1] == regle.rhs[teteDeRecherche] || a->pile[a->taillePile-1] == -regle.rhs[teteDeRecherche])
             {
                 teteDeRecherche--;
@@ -74,19 +70,39 @@ void reduirePile(automatePile* a,table table,rule regle)
             a->taillePile--;
         }
     }
+    if(a->taillePile < 0)
+    {
+        fprintf(stderr,"ECHEC DE LA REDUCTION");
+        exit(-3);
+    }
     if(tailleTexte != 0)
     {
         a->taillePile++;
         a->pile[a->taillePile -1] = '\0';
-        //TODO ECHEC SI l'etat est un nombre et pas un chiffre (faire un while tant qu'il y a des chiffres lire puis convertir pour obtenir l'etat)
-        //ATTENTION ON LIT A L'ENVERS DONC SI l'etat est 345 ON VA LIRE 543 DONC IL FAUT AUSSI INVERSER TOUT LES CHIFFRES AVANT DE CONVERTIR
-        a->etat = table.trans[(int)(a->pile[a->taillePile - 2] - '0') * 256  + 256 - regle.lhs];
+        int puissance10 = 1;
+        int nombre = 0;
+        int k = 0;
+        while ( (a->pile[a->taillePile - 2 - k]) >= '0' && (a->pile[a->taillePile - 2 - k]) <= '9')
+        {
+            nombre += (a->pile[a->taillePile - 2 - k] - '0') * puissance10;
+            puissance10 *= 10;
+            k++;
+        }
+        a->etat = table.trans[nombre * 256  + 256 - regle.lhs];
         ajoutPile(a,regle.lhs,a->etat);
     }
     else
     {
-        //DE MEME ICI ECHEC SI l'ETAT EST UN NOMBRE
-        a->etat = table.trans[(int)(a->pile[a->taillePile - 2] - '0') * 256  + 256 - regle.lhs];
+        int puissance10 = 1;
+        int nombre = 0;
+        int k = 0;
+        while ( (a->pile[a->taillePile - 2 - k]) >= '0' && (a->pile[a->taillePile - 2 - k]) <= '9')
+        {
+            nombre += (a->pile[a->taillePile - 2 - k] - '0') * puissance10;
+            puissance10 *= 10;
+            k++;
+        }
+        a->etat = table.trans[nombre * 256  + 256 - regle.lhs];
         ajoutPile(a,regle.lhs,a->etat);
     }
 
@@ -146,7 +162,6 @@ void analyseflot(const char* texte,grammar gram,table table)
 		{
 			reduirePile(&a,table,gram.rules[(-operation)-1]);
 	    		ajouteNoeudArbreAnalyse(arbre,&(gram.rules[(-operation)-1]));
-	   		// printf("arbre : %d -------\n",arbre->taille);
 	    		if(-operation -1 >= 10)
 	   	 	{
 				nbChiffresOperation = 2;
@@ -160,7 +175,6 @@ void analyseflot(const char* texte,grammar gram,table table)
 
  	ecrit_fichier_latex("\\end{tabular} \\\\ \n\n");
 
-	//litArbreAnalyse(arbre->pile[0]);
 	for (size_t i = 0; i < arbre->taille; i++)
 	{
 		litArbreAnalyse(arbre->pile[i]);
@@ -189,6 +203,7 @@ automatePile initialiseAutomate(const char* texte)
     automate.pile[0]='0';
     automate.pile[1]='\0';
     automate.taillePile = 2;
+    automate.taillePileMax = 2;
     automate.teteLecture = 0;
     automate.etat = 0;
     return automate;

@@ -24,11 +24,8 @@ noeud* creeNoeud(rule* regle)
 	{
 		for(int i = tailleTexte -1; i > -1; i--)
 		{
-			//printf("TAILLE : %d \n",tailleTexte);
-			//printf("CA MARCHE ? %c %d\n",Nouveaunoeud->regleGeneratrice->rhs[i-1],Nouveaunoeud->regleGeneratrice->rhs[i-1]);
 			if ( Nouveaunoeud->regleGeneratrice->rhs[i] < 0)
 			{
-				//printf("CA MARCHE ! \n");
 				Nouveaunoeud->nombreNonTerminaux ++;
 			}
 		}
@@ -154,28 +151,3 @@ void LibereMemoireNoeud(noeud* n)
 		free(n);
 	}
 }
-/*
-void ajouteRuleArbreAnalyse(noeud* noeud, rule rule)
-{
-	int j=0;
-
-	while(rule.rhs[j]!='\0'){
-		if(rule.rhs[j]<=0){
-			ajouteNoeudArbreAnalyse(noeud, rule.lhs, rule);
-      		}
-      		j++;
-    	}
-}
-*/
-
-/*
-void ajouteNoeudArbreAnalyse(noeud** pile,char racine, rule regleGeneratrice)
-{
-	noeud* nouveauNoeud = creeNoeud();
-
-	nouveauNoeud->racine = racine;
-	nouveauNoeud->regleGeneratrice = regleGeneratrice;
-	//nouveauNoeud->fils = noeud->racine;// ????????? //un bail du genre
-}
-*/
-
