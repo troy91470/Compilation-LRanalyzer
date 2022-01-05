@@ -3,9 +3,7 @@
 #include "ecritureLatex.h"
 
 
-
-
-void nettoie_fichier_latex()
+void init_fichier_latex(char const *chaineAnalysee,char *nomGrammaire)
 {
 	FILE *fichier;
 	fichier = fopen("resultat.tex","w");
@@ -13,6 +11,36 @@ void nettoie_fichier_latex()
 	if(fichier == NULL)
 	{
 		printf("Erreur fopen\n");
+		exit(-1);
+	}
+
+	char texte[500] = "";
+	char ligne1[50] = "\\documentclass[12pt]{article}\n";
+	char ligne2[50] = "\\usepackage[utf8]{inputenc}\n";
+	char ligne3[50] = "\\usepackage[francais]{babel}\n";
+	char ligne4[150] = "\\title{Résultat de l'execution de la chaîne de caractères \n"; 
+	strcat(ligne4,chaineAnalysee);
+	strcat(ligne4," pour la grammaire ");
+	strcat(ligne4,nomGrammaire);
+	strcat(ligne4,"}");
+	char ligne5[100] = "\\author{Bjorn LIM CHOU SANG \\and Thomas ROY}\n"; 
+	char ligne6[100] = "\\date{}\n"; 
+	char ligne7[50] = "\\begin{document}\n"; 
+	char ligne8[50] = "\\maketitle\n"; 
+
+	strcat(texte,ligne1);
+	strcat(texte,ligne2);
+	strcat(texte,ligne3);
+	strcat(texte,ligne4);
+	strcat(texte,ligne5);
+	strcat(texte,ligne6);
+	strcat(texte,ligne7);
+	strcat(texte,ligne8);
+
+	if(fputs(texte, fichier) == EOF)
+	{
+		printf("Erreur fputs");
+		exit(-1);
 	}
 
 	fclose(fichier);
@@ -27,12 +55,42 @@ void ecrit_fichier_latex(char *texte)
 	if(fichier == NULL)
 	{
 		printf("Erreur fopen\n");
+		exit(-1);
 	}
 
 	if(fputs(texte, fichier) == EOF)
 	{
 		printf("Erreur fputs");
+		exit(-1);
 	}
 
 	fclose(fichier);
 }
+
+
+
+void ouvreFichierLatex()
+{
+	char veutOuvrirFichierLatex;
+	printf("Voulez-vous voir le résultat sur un fichier latex ? package evince et texlive-full requis\no=Oui n=Non: ");
+	scanf("%c", &veutOuvrirFichierLatex);
+
+	if(veutOuvrirFichierLatex == 'o'){
+		FILE *fichier;
+		fichier = fopen("ecraseMsgSystem.txt","w");
+
+		if(fichier == NULL)
+		{
+			printf("Erreur fopen\n");
+			exit(-1);
+		}
+
+		system("pdflatex -synctex=1 -interaction=nonstopmode resultat.tex > ecraseMsgSystem.txt");
+		system("evince resultat.pdf");
+
+		fclose(fichier);
+	}
+}
+
+
+

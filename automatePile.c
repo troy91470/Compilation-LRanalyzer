@@ -164,7 +164,7 @@ void analyseflot(const char* texte,grammar gram,table table)
 	for (size_t i = 0; i < arbre->taille; i++)
 	{
 		litArbreAnalyse(arbre->pile[i]);
-		printf("\n");
+		printf("\n\n");
 		ecrit_fichier_latex("\n");
 	}
 
