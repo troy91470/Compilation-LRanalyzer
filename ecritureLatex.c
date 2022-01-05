@@ -87,7 +87,7 @@ void ouvreFichierLatex()
 			exit(-1);
 		}
 
-		system("pdflatex -synctex=1 -interaction=nonstopmode resultat.tex > ecraseMsgSystem.txt");
+		system("pdflatex -synctex=1 -interaction=nonstopmode resultat.tex > /dev/null");
 		system("evince resultat.pdf");
 
 		fclose(fichier);
