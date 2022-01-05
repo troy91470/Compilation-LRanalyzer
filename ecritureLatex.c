@@ -14,19 +14,20 @@ void init_fichier_latex(char const *chaineAnalysee,char *nomGrammaire)
 		exit(-1);
 	}
 
-	char texte[500] = "";
+	char texte[650] = "";
 	char ligne1[50] = "\\documentclass[12pt]{article}\n";
 	char ligne2[50] = "\\usepackage[utf8]{inputenc}\n";
 	char ligne3[50] = "\\usepackage[francais]{babel}\n";
-	char ligne4[150] = "\\title{Résultat de l'execution de la chaîne de caractères \n"; 
-	strcat(ligne4,chaineAnalysee);
-	strcat(ligne4," pour la grammaire ");
-	strcat(ligne4,nomGrammaire);
-	strcat(ligne4,"}");
-	char ligne5[100] = "\\author{Bjorn LIM CHOU SANG \\and Thomas ROY}\n"; 
-	char ligne6[100] = "\\date{}\n"; 
-	char ligne7[50] = "\\begin{document}\n"; 
-	char ligne8[50] = "\\maketitle\n"; 
+	char ligne4[50] = "\\usepackage{supertabular}\n";
+	char ligne5[150] = "\\title{Résultat de l'execution de la chaîne de caractères \n"; 
+	strcat(ligne5,chaineAnalysee);
+	strcat(ligne5," pour la grammaire ");
+	strcat(ligne5,nomGrammaire);
+	strcat(ligne5,"}");
+	char ligne6[100] = "\\author{Bjorn LIM CHOU SANG \\and Thomas ROY}\n"; 
+	char ligne7[100] = "\\date{}\n"; 
+	char ligne8[50] = "\\begin{document}\n"; 
+	char ligne9[50] = "\\maketitle\n"; 
 
 	strcat(texte,ligne1);
 	strcat(texte,ligne2);
@@ -36,6 +37,7 @@ void init_fichier_latex(char const *chaineAnalysee,char *nomGrammaire)
 	strcat(texte,ligne6);
 	strcat(texte,ligne7);
 	strcat(texte,ligne8);
+	strcat(texte,ligne9);
 
 	if(fputs(texte, fichier) == EOF)
 	{

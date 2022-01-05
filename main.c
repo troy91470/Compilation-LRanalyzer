@@ -15,10 +15,7 @@ int main(int argc, char const *argv[])
 		exit(-1);
 	}
 	file = read_file(argv[1]);
-	printf("Grammaire\n");
-	print_grammar(file.G);
-	printf("table\n");
-	print_table(file.t,file.G);
+
 	analyseflot(argv[2],file.G,file.t);
 
 	ecrit_fichier_latex("\\end{document}\n");
